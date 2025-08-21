@@ -36,7 +36,7 @@ function showRegister() {
   app.innerHTML = `
     <h1>Register Device</h1>
     <form id="registerForm">
-      <label for="name">Name:</label>
+      <label for="name">Device Name:</label>
       <input type="text" id="name" required>
       <label for="enrollId">Enroll ID:</label>
       <input type="text" id="enrollId" required>
@@ -48,13 +48,13 @@ function showRegister() {
 
 async function handleRegister(e) {
   e.preventDefault();
-  const name = document.getElementById('name').value.trim();
+  const deviceName = document.getElementById('name').value.trim();
   const enrollId = document.getElementById('enrollId').value.trim();
   const now = new Date();
   const value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
 
-  if (name.length > 100 || !/^[A-Za-z\s]+$/.test(name)) {
-    alert('Invalid name: Must be letters and spaces only, max 100 characters.');
+  if (deviceName.length > 100 || !/^[A-Za-z\s]+$/.test(deviceName)) {
+    alert('Invalid device name: Must be letters and spaces only, max 100 characters.');
     return;
   }
   if (enrollId.length > 20 || !/^[A-Za-z0-9]+$/.test(enrollId)) {
@@ -66,14 +66,14 @@ async function handleRegister(e) {
     const res = await fetch(`${API_BASE}/save-data`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, enrollId, value })
+      body: JSON.stringify({ deviceName, enrollId, value })
     });
     if (!res.ok) {
       const errorData = await res.json();
       throw new Error(errorData.error || 'Failed to register.');
     }
     const { data: device } = await res.json();
-    showControl(enrollId, device.name, device.value, device.device_status);
+    showControl(enrollId, device.deviceName, device.value, device.device_status);
     toggleNavButtons(true);
   } catch (err) {
     alert(`Error: ${err.message}`);
@@ -106,17 +106,17 @@ async function handleLogin(e) {
       alert('Device not found with this Enroll ID.');
       return;
     }
-    showControl(enrollId, device.name, device.value, device.device_status);
+    showControl(enrollId, device.deviceName, device.value, device.device_status);
     toggleNavButtons(true);
   } catch (err) {
     alert(`Error: ${err.message}`);
   }
 }
 
-function showControl(enrollId, name, value, status) {
+function showControl(enrollId, deviceName, value, status) {
   toggleNavButtons(true);
   app.innerHTML = `
-    <h1>Device Control: ${name}</h1>
+    <h1>Device Control: ${deviceName}</h1>
     <p>Enroll ID: ${enrollId}</p>
     <p id="valueDisplay">Last Value: ${value}</p>
     <p>Status: <span id="status" class="${status ? 'on' : 'off'}">${status ? 'ON' : 'OFF'}</span></p>
@@ -204,6 +204,5 @@ async function loadLogs(enrollId) {
   }
 }
 
-// Initialize
 setupNavigation();
 showAuth();
