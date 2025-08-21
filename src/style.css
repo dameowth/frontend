@@ -40,6 +40,13 @@ h1 {
   margin-bottom: 20px;
 }
 
+h2 {
+  font-size: 1.8em;
+  color: #00ffe0;
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
 p {
   margin: 5px 0;
   line-height: 1.5;
@@ -128,38 +135,50 @@ button:focus-visible {
   box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #00ffe0aa);
-}
-.logo.vanilla:hover {
-  filter: drop-shadow(0 0 2em #f7df1eaa);
+#logsSection {
+  margin-top: 20px;
+  text-align: left;
 }
 
-.card {
-  padding: 2em;
+#logsTable {
+  width: 100%;
+  border-collapse: collapse;
   background-color: #0f1724;
   border: 1px solid #3a4a5e;
   border-radius: 8px;
-  color: #cdd9e5;
+  overflow: hidden;
 }
 
-.read-the-docs {
-  color: #888;
+#logsTable th,
+#logsTable td {
+  padding: 10px;
+  text-align: left;
+  color: #cdd9e5;
+  border-bottom: 1px solid #3a4a5e;
+}
+
+#logsTable th {
+  background-color: #1a2233;
+  font-weight: 600;
+}
+
+#logsTable tbody tr:hover {
+  background-color: #1a2233;
 }
 
 #status.on {
   color: #28a745;
   font-weight: bold;
+  background-color: rgba(40, 167, 69, 0.1);
+  padding: 5px 10px;
+  border-radius: 4px;
 }
 #status.off {
   color: #dc3545;
   font-weight: bold;
+  background-color: rgba(220, 53, 69, 0.1);
+  padding: 5px 10px;
+  border-radius: 4px;
 }
 
 @media (prefers-color-scheme: light) {
@@ -174,5 +193,29 @@ button:focus-visible {
     background-color: #f9f9f9;
     color: #213547;
     border-color: #747bff;
+  }
+  #app {
+    background-color: #f9f9f9;
+  }
+  #logsTable {
+    background-color: #ffffff;
+    border: 1px solid #dcdcdc;
+  }
+  #logsTable th,
+  #logsTable td {
+    color: #213547;
+    border-bottom: 1px solid #dcdcdc;
+  }
+  #logsTable th {
+    background-color: #f0f0f0;
+  }
+  #logsTable tbody tr:hover {
+    background-color: #f0f0f0;
+  }
+  #status.on {
+    background-color: rgba(40, 167, 69, 0.2);
+  }
+  #status.off {
+    background-color: rgba(220, 53, 69, 0.2);
   }
 }

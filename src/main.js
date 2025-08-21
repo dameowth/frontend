@@ -123,10 +123,23 @@ function showControl(enrollId, name, value, status) {
     <button id="turnOn">Turn On</button>
     <button id="turnOff">Turn Off</button>
     <button id="refresh">Refresh</button>
+    <div id="logsSection">
+      <h2>Usage Logs</h2>
+      <table id="logsTable">
+        <thead>
+          <tr>
+            <th>Action</th>
+            <th>Date and Time</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
   `;
   document.getElementById('turnOn').addEventListener('click', () => handleTurn(enrollId, true));
   document.getElementById('turnOff').addEventListener('click', () => handleTurn(enrollId, false));
   document.getElementById('refresh').addEventListener('click', () => refreshStatus(enrollId));
+  loadLogs(enrollId);
 }
 
 async function handleTurn(enrollId, on) {
@@ -144,6 +157,7 @@ async function handleTurn(enrollId, on) {
     const { data: device } = await res.json();
     document.getElementById('status').textContent = device.device_status ? 'ON' : 'OFF';
     document.getElementById('status').className = device.device_status ? 'on' : 'off';
+    loadLogs(enrollId);
   } catch (err) {
     alert(`Error: ${err.message}`);
   }
@@ -164,8 +178,29 @@ async function refreshStatus(enrollId) {
     if (device) {
       document.getElementById('valueDisplay').textContent = `Last Value: ${device.value}`;
     }
+    loadLogs(enrollId);
   } catch (err) {
     alert(`Error: ${err.message}`);
+  }
+}
+
+async function loadLogs(enrollId) {
+  try {
+    const res = await fetch(`${API_BASE}/device/logs/${enrollId}`);
+    if (!res.ok) throw new Error('Failed to fetch logs.');
+    const { logs } = await res.json();
+    const tbody = document.querySelector('#logsTable tbody');
+    tbody.innerHTML = '';
+    logs.forEach(log => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${log.action.toUpperCase()}</td>
+        <td>${new Date(log.timestamp).toLocaleString()}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    console.error(`Error loading logs: ${err.message}`);
   }
 }
 
