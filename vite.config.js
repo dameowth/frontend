@@ -2,10 +2,21 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
   build: {
-    outDir: 'dist', // Output directory for built files
-    assetsDir: 'assets', // Directory for assets like CSS
+    outDir: 'dist',
+    assetsDir: 'assets',
+    minify: 'esbuild', // Enable minification
+    sourcemap: true, // Generate sourcemaps for debugging
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['node_modules'] // Split vendor code
+        }
+      }
+    }
   },
   server: {
-    port: 5173, // Default Vite dev server port
-  },
+    port: 5173,
+    open: true,
+    define: {'import.meta.env.VITE_API_BASE': JSON.stringify(process.env.VITE_API_BASE || 'https://exercise1-nt4i.onrender.com')}
+  }
 });

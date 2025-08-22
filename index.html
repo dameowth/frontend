@@ -1,19 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Device Control</title>
-  <link rel="stylesheet" href="/src/style.css">
-</head>
-<body>
-  <nav id="navbar">
-    <button id="homeBtn">Home</button>
-    <button id="registerNavBtn">Register</button>
-    <button id="loginNavBtn">Login</button>
-    <button id="logoutNavBtn" style="display: none;">Logout</button>
-  </nav>
-  <div id="app"></div>
-  <script src="/src/main.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./src/styles.css" />
+    <title>Device Control App</title>
+  </head>
+  <body>
+    <div id="app"></div>
+    <nav id="navbar">
+      <a id="homeBtn" aria-label="Go to home page">Home</a>
+      <a id="userRegisterBtn" aria-label="Register a new user">User Register</a>
+      <a id="userLoginBtn" aria-label="Log in as a user">User Login</a>
+      <a id="registerDeviceBtn" aria-label="Register a new device">Register Device</a>
+      <a id="loginDeviceBtn" aria-label="Log in to a device">Login Device</a>
+      <a id="logoutNavBtn" aria-label="Log out">Logout</a>
+    </nav>
+    <script type="module" src="./src/main.js"></script>
+  </body>
 </html>
