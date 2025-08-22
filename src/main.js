@@ -51,8 +51,16 @@ async function handleUserLogin(e) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
-    if (!res.ok) throw new Error((await res.json()).error);
-    const { token } = await res.json();
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`HTTP error! status: ${res.status}, response: ${text}`);
+    }
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error('Response is not JSON');
+    }
+    const data = await res.json();
+    const { token } = data;
     setAuthToken(token);
     showError('User logged in successfully!', false);
     toggleNavButtons(true);
