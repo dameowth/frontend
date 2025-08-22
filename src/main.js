@@ -57,7 +57,8 @@ async function handleUserLogin(e) {
     }
     const contentType = res.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
-      throw new Error('Response is not JSON');
+      const text = await res.text();
+      throw new Error(`Response is not JSON: ${text}`);
     }
     const data = await res.json();
     const { token } = data;
