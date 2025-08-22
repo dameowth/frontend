@@ -45,50 +45,54 @@ async function handleUserLogin(e) {
   e.preventDefault();
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value.trim();
+
+  // Validar email
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showError('Invalid email format');
+    return;
+  }
+  if (password.length < 3) {
+    showError('Password must be at least 3 characters long');
+    return;
+  }
+
+  let res;
   try {
-    const res = await fetch(`${API_BASE}/user/login`, {
+    console.log('Requesting:', `${API_BASE}/user/login`, { email, password });
+    res = await fetch(`${API_BASE}/user/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password })
     });
     if (!res.ok) {
       const text = await res.text();
-      throw new Error(`HTTP error! status: ${res.status}, response: ${text}`);
+      try {
+        const errorData = JSON.parse(text);
+        throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
+      } catch {
+        throw new Error(`HTTP error! status: ${res.status}, response: ${text}`);
+      }
     }
     const contentType = res.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
       const text = await res.text();
+      console.error('Non-JSON response:', text);
       throw new Error(`Response is not JSON: ${text}`);
     }
     const data = await res.json();
     const { token } = data;
     setAuthToken(token);
-    showError('User logged in successfully!', false);
+    showError('User logged in successfully!', true);
     toggleNavButtons(true);
     showAuth();
   } catch (err) {
+    console.error('Login error:', err.message);
+    if (res) {
+      const rawText = await res.text();
+      console.error('Raw response in catch:', rawText);
+    }
     showError(`Error: ${err.message}`);
-    console.log("Raw response:", await res.text());
   }
-}
-
-function toggleNavButtons(isLoggedIn) {
-  registerNavBtn.style.display = isLoggedIn ? 'block' : 'none';
-  loginNavBtn.style.display = isLoggedIn ? 'block' : 'none';
-  logoutNavBtn.style.display = isLoggedIn ? 'block' : 'none';
-  userRegisterBtn.style.display = isLoggedIn ? 'none' : 'block';
-  userLoginBtn.style.display = isLoggedIn ? 'none' : 'block';
-}
-
-function showAuth() {
-  toggleNavButtons(!!authToken);
-  const content = document.createElement('div');
-  content.innerHTML = `
-    <h1>Welcome to Device Control</h1>
-    <p>Please register a new device or login to an existing one.</p>
-  `;
-  app.innerHTML = '';
-  app.appendChild(content);
 }
 
 function showUserRegister() {
@@ -114,121 +118,198 @@ async function handleUserRegister(e) {
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value.trim();
 
-  if (username.length > 50 || !/^[A-Za-z0-9_]+$/.test(username)) {
-    showError('Invalid username: Alphanumeric and underscores only, max 50 characters.');
+  // Validar inputs
+  if (!/^[A-Za-z0-9]{3,50}$/.test(username)) {
+    showError('Username must be 3-50 alphanumeric characters');
     return;
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    showError('Invalid email format.');
+    showError('Invalid email format');
     return;
   }
-  if (password.length < 8 || password.length > 100) {
-    showError('Password must be between 8 and 100 characters.');
+  if (password.length < 3) {
+    showError('Password must be at least 3 characters long');
     return;
   }
 
+  let res;
   try {
-    const res = await fetch(`${API_BASE}/user/signup`, {
+    console.log('Requesting:', `${API_BASE}/user/signup`, { username, email, password });
+    res = await fetch(`${API_BASE}/user/signup`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, email, password })
     });
-    if (!res.ok) throw new Error((await res.json()).error);
-    showError('User registered successfully! Please login.', false);
+    if (!res.ok) {
+      const text = await res.text();
+      try {
+        const errorData = JSON.parse(text);
+        throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
+      } catch {
+        throw new Error(`HTTP error! status: ${res.status}, response: ${text}`);
+      }
+    }
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await res.text();
+      console.error('Non-JSON response:', text);
+      throw new Error(`Response is not JSON: ${text}`);
+    }
+    const data = await res.json();
+    showError('User registered successfully!', true);
     showUserLogin();
   } catch (err) {
+    console.error('Register error:', err.message);
+    if (res) {
+      const rawText = await res.text();
+      console.error('Raw response in catch:', rawText);
+    }
     showError(`Error: ${err.message}`);
   }
 }
 
 function showRegister() {
-  if (!authToken) {
-    showError('Please log in to register a device.');
-    showUserLogin();
-    return;
-  }
   app.innerHTML = `
     <h1>Register Device</h1>
-    <form id="registerForm">
-      <label for="name">Device Name:</label>
-      <input type="text" id="name" required>
+    <form id="deviceRegisterForm">
+      <label for="deviceName">Device Name:</label>
+      <input type="text" id="deviceName" required>
       <label for="enrollId">Enroll ID:</label>
       <input type="text" id="enrollId" required>
-      <button type="submit">Register</button>
+      <label for="value">Timestamp (YYYY-MM-DD HH:MM:SS):</label>
+      <input type="text" id="value" required>
+      <button type="submit">Register Device</button>
     </form>
     <div id="error" class="error" style="display: none;"></div>
   `;
-  document.getElementById('registerForm').addEventListener('submit', handleRegister);
+  document.getElementById('deviceRegisterForm').addEventListener('submit', handleRegister);
 }
 
 async function handleRegister(e) {
   e.preventDefault();
-  if (!authToken) {
-    showError('Please log in to register a device.');
-    showUserLogin();
-    return;
-  }
-  const deviceName = document.getElementById('name').value.trim();
+  const deviceName = document.getElementById('deviceName').value.trim();
   const enrollId = document.getElementById('enrollId').value.trim();
-  const now = new Date();
-  const value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+  const value = document.getElementById('value').value.trim();
 
-  if (deviceName.length > 100 || !/^[A-Za-z\s]+$/.test(deviceName)) {
-    showError('Invalid device name: Must be letters and spaces only, max 100 characters.');
+  // Validar inputs
+  if (!/^[A-Za-z\s]{1,100}$/.test(deviceName)) {
+    showError('Device name must be 1-100 alphabetic characters or spaces');
     return;
   }
-  if (enrollId.length > 20 || !/^[A-Za-z0-9]+$/.test(enrollId)) {
-    showError('Invalid Enroll ID: Alphanumeric only, max 20 characters.');
+  if (!/^[A-Za-z0-9]{1,20}$/.test(enrollId)) {
+    showError('Enroll ID must be 1-20 alphanumeric characters');
+    return;
+  }
+  if (!/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(value)) {
+    showError('Timestamp must be in YYYY-MM-DD HH:MM:SS format');
     return;
   }
 
+  let res;
   try {
-    const res = await fetch(`${API_BASE}/device/save-data`, {
+    console.log('Requesting:', `${API_BASE}/save-data`, { deviceName, enrollId, value });
+    res = await fetch(`${API_BASE}/save-data`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`
+      },
       body: JSON.stringify({ deviceName, enrollId, value })
     });
     if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.error || 'Failed to register.');
+      const text = await res.text();
+      try {
+        const errorData = JSON.parse(text);
+        throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
+      } catch {
+        throw new Error(`HTTP error! status: ${res.status}, response: ${text}`);
+      }
     }
-    const { data: device } = await res.json();
-    showControl(enrollId, device.deviceName, device.value, device.device_status);
-    toggleNavButtons(true);
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await res.text();
+      console.error('Non-JSON response:', text);
+      throw new Error(`Response is not JSON: ${text}`);
+    }
+    const { data } = await res.json();
+    showError('Device registered successfully!', true);
+    showControl(data.enrollId, data.deviceName, data.value, data.device_status);
   } catch (err) {
+    console.error('Register device error:', err.message);
+    if (res) {
+      const rawText = await res.text();
+      console.error('Raw response in catch:', rawText);
+    }
     showError(`Error: ${err.message}`);
   }
 }
 
 function showLogin() {
   app.innerHTML = `
-    <h1>Login to Device</h1>
-    <form id="loginForm">
+    <h1>Device Login</h1>
+    <form id="deviceLoginForm">
       <label for="enrollId">Enroll ID:</label>
       <input type="text" id="enrollId" required>
-      <button type="submit">Login</button>
+      <button type="submit">Login Device</button>
     </form>
     <div id="error" class="error" style="display: none;"></div>
   `;
-  document.getElementById('loginForm').addEventListener('submit', handleLogin);
+  document.getElementById('deviceLoginForm').addEventListener('submit', handleDeviceLogin);
 }
 
-async function handleLogin(e) {
+async function handleDeviceLogin(e) {
   e.preventDefault();
   const enrollId = document.getElementById('enrollId').value.trim();
 
+  // Validar enrollId
+  if (!/^[A-Za-z0-9]{1,20}$/.test(enrollId)) {
+    showError('Enroll ID must be 1-20 alphanumeric characters');
+    return;
+  }
+
+  let res;
   try {
-    const res = await fetch(`${API_BASE}/getdata`);
-    if (!res.ok) throw new Error('Failed to fetch device data.');
-    const { data: rows } = await res.json();
-    const device = rows.find(r => r.enrollid === enrollId);
-    if (!device) {
-      showError('Device not found with this Enroll ID.');
-      return;
+    console.log('Requesting:', `${API_BASE}/device/status/${enrollId}`);
+    res = await fetch(`${API_BASE}/device/status/${enrollId}`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      try {
+        const errorData = JSON.parse(text);
+        throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
+      } catch {
+        throw new Error(`HTTP error! status: ${res.status}, response: ${text}`);
+      }
     }
-    showControl(enrollId, device.deviceName, device.value, device.device_status);
-    toggleNavButtons(true);
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await res.text();
+      console.error('Non-JSON response:', text);
+      throw new Error(`Response is not JSON: ${text}`);
+    }
+    const { device_status } = await res.json();
+    // Asumimos que necesitamos más datos del dispositivo, así que hacemos otra llamada
+    const deviceRes = await fetch(`${API_BASE}/device/${enrollId}`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    if (!deviceRes.ok) {
+      const text = await deviceRes.text();
+      try {
+        const errorData = JSON.parse(text);
+        throw new Error(errorData.error || `HTTP error! status: ${deviceRes.status}`);
+      } catch {
+        throw new Error(`HTTP error! status: ${deviceRes.status}, response: ${text}`);
+      }
+    }
+    const deviceData = await deviceRes.json();
+    showControl(enrollId, deviceData.deviceName, deviceData.value, device_status);
   } catch (err) {
+    console.error('Device login error:', err.message);
+    if (res) {
+      const rawText = await res.text();
+      console.error('Raw response in catch:', rawText);
+    }
     showError(`Error: ${err.message}`);
   }
 }
@@ -266,8 +347,10 @@ function showControl(enrollId, deviceName, value, status) {
 
 async function handleTurn(enrollId, on) {
   const endpoint = on ? '/device/turn-on' : '/device/turn-off';
+  let res;
   try {
-    const res = await fetch(`${API_BASE}${endpoint}`, {
+    console.log('Requesting:', `${API_BASE}${endpoint}`, { enrollId });
+    res = await fetch(`${API_BASE}${endpoint}`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -276,14 +359,31 @@ async function handleTurn(enrollId, on) {
       body: JSON.stringify({ enrollId })
     });
     if (!res.ok) {
-      const errorData = await res.json();
-      throw new Error(errorData.error || 'Failed to update status.');
+      const text = await res.text();
+      try {
+        const errorData = JSON.parse(text);
+        throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
+      } catch {
+        throw new Error(`HTTP error! status: ${res.status}, response: ${text}`);
+      }
+    }
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await res.text();
+      console.error('Non-JSON response:', text);
+      throw new Error(`Response is not JSON: ${text}`);
     }
     const { data: device } = await res.json();
     document.getElementById('status').textContent = device.device_status ? 'ON' : 'OFF';
     document.getElementById('status').className = device.device_status ? 'on' : 'off';
+    showError(`Device turned ${on ? 'on' : 'off'} successfully!`, true);
     loadLogs(enrollId);
   } catch (err) {
+    console.error('Turn error:', err.message);
+    if (res) {
+      const rawText = await res.text();
+      console.error('Raw response in catch:', rawText);
+    }
     showError(`Error: ${err.message}`);
   }
 }
@@ -295,15 +395,36 @@ async function loadLogs(enrollId) {
     renderLogs(cachedLogs[enrollId]);
     return;
   }
+  let res;
   try {
-    const res = await fetch(`${API_BASE}/device/logs/${enrollId}`, {
+    console.log('Requesting:', `${API_BASE}/device/logs/${enrollId}`);
+    res = await fetch(`${API_BASE}/device/logs/${enrollId}`, {
       headers: { 'Authorization': `Bearer ${authToken}` }
     });
-    if (!res.ok) throw new Error('Failed to fetch logs.');
+    if (!res.ok) {
+      const text = await res.text();
+      try {
+        const errorData = JSON.parse(text);
+        throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
+      } catch {
+        throw new Error(`HTTP error! status: ${res.status}, response: ${text}`);
+      }
+    }
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await res.text();
+      console.error('Non-JSON response:', text);
+      throw new Error(`Response is not JSON: ${text}`);
+    }
     const { logs } = await res.json();
     cachedLogs[enrollId] = logs;
     renderLogs(logs);
   } catch (err) {
+    console.error('Load logs error:', err.message);
+    if (res) {
+      const rawText = await res.text();
+      console.error('Raw response in catch:', rawText);
+    }
     showError(`Error: ${err.message}`);
   }
 }
@@ -323,17 +444,39 @@ function renderLogs(logs) {
 }
 
 async function refreshStatus(enrollId) {
+  let res;
   try {
-    const res = await fetch(`${API_BASE}/device/${enrollId}`, {
+    console.log('Requesting:', `${API_BASE}/device/${enrollId}`);
+    res = await fetch(`${API_BASE}/device/${enrollId}`, {
       headers: { 'Authorization': `Bearer ${authToken}` }
     });
-    if (!res.ok) throw new Error('Failed to fetch device data.');
+    if (!res.ok) {
+      const text = await res.text();
+      try {
+        const errorData = JSON.parse(text);
+        throw new Error(errorData.error || `HTTP error! status: ${res.status}`);
+      } catch {
+        throw new Error(`HTTP error! status: ${res.status}, response: ${text}`);
+      }
+    }
+    const contentType = res.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await res.text();
+      console.error('Non-JSON response:', text);
+      throw new Error(`Response is not JSON: ${text}`);
+    }
     const { device_status, value } = await res.json();
     document.getElementById('status').textContent = device_status ? 'ON' : 'OFF';
     document.getElementById('status').className = device_status ? 'on' : 'off';
     document.getElementById('valueDisplay').textContent = `Last Value: ${value}`;
+    showError('Status refreshed successfully!', true);
     loadLogs(enrollId);
   } catch (err) {
+    console.error('Refresh status error:', err.message);
+    if (res) {
+      const rawText = await res.text();
+      console.error('Raw response in catch:', rawText);
+    }
     showError(`Error: ${err.message}`);
   }
 }
@@ -346,6 +489,17 @@ function showError(message, isSuccess = false) {
   setTimeout(() => {
     errorDiv.style.display = 'none';
   }, 5000);
+}
+
+function showAuth() {
+  toggleNavButtons(!!authToken);
+  const content = document.createElement('div');
+  content.innerHTML = `
+    <h1>Welcome to Device Control</h1>
+    <p>Please register a new device or login to an existing one.</p>
+  `;
+  app.innerHTML = '';
+  app.appendChild(content);
 }
 
 let authToken = localStorage.getItem('authToken') || null;
