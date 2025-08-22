@@ -68,6 +68,7 @@ async function handleUserLogin(e) {
     showAuth();
   } catch (err) {
     showError(`Error: ${err.message}`);
+    console.log("Raw response:", await res.text());
   }
 }
 
