@@ -10,6 +10,7 @@ const loginNavBtn = document.getElementById('loginDeviceBtn');
 const logoutNavBtn = document.getElementById('logoutNavBtn');
 const userRegisterBtn = document.getElementById('userRegisterBtn');
 const userLoginBtn = document.getElementById('userLoginBtn');
+const listDevicesBtn = document.getElementById('listDevicesBtn');
 
 let authToken = localStorage.getItem('authToken') || null;
 
@@ -33,6 +34,8 @@ function toggleNavButtons(isLoggedIn) {
 
 function setupNavigation() {
   toggleNavButtons(!!authToken);
+  listDevicesBtn.addEventListener('click', showDeviceList);
+  listDevicesBtn.style.display = !!authToken ? 'inline-block' : 'none';
   homeBtn.addEventListener('click', showAuth);
   registerNavBtn.addEventListener('click', showRegister);
   loginNavBtn.addEventListener('click', showLogin);
@@ -262,6 +265,48 @@ async function showDeviceControl(enrollId) {
   document.getElementById('turnOffBtn').addEventListener('click', () => turnDevice(enrollId, false));
   document.getElementById('refreshBtn').addEventListener('click', () => refreshStatus(enrollId));
   await refreshStatus(enrollId);
+}
+
+async function showDeviceList() {
+  app.innerHTML = `
+    <h1>Registered Devices</h1>
+    <table id="devicesTable">
+      <thead>
+        <tr>
+          <th>Device Name</th>
+          <th>Enroll ID</th>
+          <th>Value</th>
+          <th>Status</th>
+          <th>Registered By</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <div id="error" class="error" style="display: none;"></div>
+  `;
+  try {
+    const res = await fetch(`${API_BASE}/get-data`, {
+      headers: { 'Authorization': `Bearer ${authToken}` }
+    });
+    if (!res.ok) throw new Error('Fetch error');
+    const { data } = await res.json();
+    const tbody = document.querySelector('#devicesTable tbody');
+    data.forEach(device => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${device.devicename}</td>
+        <td>${device.enrollid}</td>
+        <td>${new Date(device.value).toLocaleString()}</td>
+        <td>${device.device_status ? 'ON' : 'OFF'}</td>
+        <td>${device.registered_by || 'Unknown'}</td>
+        <td><button onclick="showDeviceControl('${device.enrollid}')">Control</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  } catch (err) {
+    showError(`Error: ${err.message}`);
+  }
 }
 
 async function turnDevice(enrollId, on) {

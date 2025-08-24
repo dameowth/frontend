@@ -194,6 +194,79 @@ button:focus-visible {
   margin-top: 5px;
 }
 
+#devicesTable {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #0f1724;
+  border: 1px solid #3a4a5e;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#devicesTable th,
+#devicesTable td {
+  padding: 10px;
+  text-align: left;
+  color: #cdd9e5;
+  border-bottom: 1px solid #3a4a5e;
+}
+
+#devicesTable th {
+  background-color: #1a2233;
+  font-weight: 600;
+}
+
+#devicesTable tbody tr:hover {
+  background-color: #1a2233;
+}
+
+#devicesTable button {
+  background-color: #00ffe0;
+  color: #0b0f1a;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+#devicesTable button:hover {
+  background-color: #00c8b0;
+}
+
+/* Media query para tema claro */
+@media (prefers-color-scheme: light) {
+  #devicesTable {
+    background-color: #ffffff;
+    border: 1px solid #dcdcdc;
+  }
+
+  #devicesTable th,
+  #devicesTable td {
+    color: #213547;
+    border-bottom: 1px solid #dcdcdc;
+  }
+
+  #devicesTable th {
+    background-color: #f0f0f0;
+  }
+
+  #devicesTable tbody tr:hover {
+    background-color: #f0f0f0;
+  }
+
+  #devicesTable button {
+    background-color: #747bff;
+    color: #ffffff;
+  }
+
+  #devicesTable button:hover {
+    background-color: #5a60cc;
+  }
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
