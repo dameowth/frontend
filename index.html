@@ -1,22 +1,22 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="/src/style.css" />
-    <title>Device Control App</title>
+    <title>Device Control</title>
+    <script type="module" src="/main.js"></script>
   </head>
   <body>
-    <div id="app"></div>
     <nav id="navbar">
-      <a id="homeBtn" aria-label="Go to home page">Home</a>
-      <a id="userRegisterBtn" aria-label="Register a new user">User Register</a>
-      <a id="userLoginBtn" aria-label="Log in as a user">User Login</a>
-      <a id="registerDeviceBtn" aria-label="Register a new device">Register Device</a>
-      <a id="loginDeviceBtn" aria-label="Log in to a device">Login Device</a>
-      <a id="listDevicesBtn">List Devices</a>
-      <a id="logoutNavBtn" aria-label="Log out">Logout</a>
+      <a id="homeBtn" href="#">Home</a>
+      <a id="userRegisterBtn" href="#">User Register</a>
+      <a id="userLoginBtn" href="#">User Login</a>
+      <a id="registerDeviceBtn" href="#">Register Device</a>
+      <a id="loginDeviceBtn" href="#">Login Device</a>
+      <a id="listDevicesBtn" href="#">List Devices</a>
+      <a id="logoutNavBtn" href="#">Logout</a>
     </nav>
-    <script type="module" src="/src/main.js"></script>
+    <div id="app"></div>
+    <div id="error" style="display:none;"></div>
   </body>
 </html>
